@@ -1,67 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Field Survey</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms of Participation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
-    label, input, textarea, button { display: block; margin-top: 15px; width: 100%; }
-    button { background-color: #3b82f6; color: white; border: none; padding: 10px; cursor: pointer; }
-    .hidden { display: none; }
+    body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; }
+    h2 { margin-bottom: 0; }
+    button { margin-top: 30px; padding: 12px 20px; background-color: #3b82f6; color: white; border: none; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h2>Submit Survey</h2>
-  <form id="survey-form">
-    <label>Name:</label>
-    <input type="text" id="name" required>
+  <h2>Terms of Participation</h2>
+  <p>
+    By proceeding, you agree to participate in a field survey study involving the collection of geospatial and field-reported data.
+    This information may include your device's GPS location and voluntary inputs related to land use, animal activity, or infrastructure.
+  </p>
+  <p>
+    Data will be handled securely and may be analyzed to improve AI-driven geospatial tools. Your personal identity will not be associated
+    with published outputs. Participation is voluntary and you may exit at any time.
+  </p>
 
-    <label>Property ID:</label>
-    <input type="text" id="property" required>
-
-    <label>Notes:</label>
-    <textarea id="notes" rows="3"></textarea>
-
-    <input type="hidden" id="lat">
-    <input type="hidden" id="lng">
-
-    <button type="submit">Submit</button>
-  </form>
-
-  <script>
-    // Collect GPS quietly
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        document.getElementById("lat").value = pos.coords.latitude;
-        document.getElementById("lng").value = pos.coords.longitude;
-      },
-      (err) => {
-        console.warn("GPS error:", err.message);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-
-    document.getElementById("survey-form").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const formData = {
-        name: document.getElementById("name").value,
-        property: document.getElementById("property").value,
-        notes: document.getElementById("notes").value,
-        lat: parseFloat(document.getElementById("lat").value),
-        lng: parseFloat(document.getElementById("lng").value),
-        timestamp: new Date().toISOString(),
-        ua: navigator.userAgent
-      };
-
-      fetch("/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      }).then(() => {
-        alert("✅ Submitted");
-        document.getElementById("survey-form").reset();
-      });
-    });
-  </script>
+  <button onclick="window.location.href='/form'">I Agree</button>
 </body>
 </html>
