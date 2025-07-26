@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Geo Redirect</title>
+</head>
+<body>
+  <h1>Collecting GPS Location...</h1>
+  <script>
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const coords = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
+        };
+        await fetch('/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(coords)
+        });
+        // Change this to your actual survey or redirect destination
+        window.location.href = "https://surveyplanet.com/survey-id-here";
+      },
+      (err) => {
+        console.error("Error getting location:", err);
+        window.location.href = "https://surveyplanet.com/survey-id-here";
+      }
+    );
+  </script>
+</body>
+</html>
