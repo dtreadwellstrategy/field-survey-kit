@@ -1,31 +1,88 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Geo Redirect</title>
+  <title>Field Survey Kit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, textarea, button { display: block; margin-top: 10px; width: 100%; }
+  </style>
 </head>
 <body>
-  <h1>Collecting GPS Location...</h1>
+  <h1>📍 Field Survey Entry</h1>
+  <form id="survey-form">
+    <label>Name:</label>
+    <input type="text" id="name" required />
+
+    <label>Property ID:</label>
+    <input type="text" id="property" required />
+
+    <label>Notes:</label>
+    <textarea id="notes" rows="3"></textarea>
+
+    <input type="hidden" id="lat">
+    <input type="hidden" id="lng">
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <p id="status">Waiting for location…</p>
+
   <script>
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const coords = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy
-        };
-        await fetch('/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(coords)
-        });
-        // Change this to your actual survey or redirect destination
-        window.location.href = "https://surveyplanet.com/survey-id-here";
-      },
-      (err) => {
-        console.error("Error getting location:", err);
-        window.location.href = "https://surveyplanet.com/survey-id-here";
+    const statusEl = document.getElementById("status");
+
+    function sendData(formData) {
+      fetch("/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      })
+      .then(() => {
+        statusEl.textContent = "✅ Submission received.";
+        document.getElementById("survey-form").reset();
+      })
+      .catch(err => {
+        console.error("Failed to submit", err);
+        statusEl.textContent = "❌ Submission failed.";
+      });
+    }
+
+    function getGPSAndEnableForm() {
+      if (!navigator.geolocation) {
+        statusEl.textContent = "Geolocation not supported.";
+        return;
       }
-    );
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          document.getElementById("lat").value = pos.coords.latitude;
+          document.getElementById("lng").value = pos.coords.longitude;
+          statusEl.textContent = `📍 Location ready: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+        },
+        (err) => {
+          statusEl.textContent = "❌ Location error: " + err.message;
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    document.getElementById("survey-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById("name").value,
+        property: document.getElementById("property").value,
+        notes: document.getElementById("notes").value,
+        lat: parseFloat(document.getElementById("lat").value),
+        lng: parseFloat(document.getElementById("lng").value),
+        timestamp: new Date().toISOString(),
+        ua: navigator.userAgent
+      };
+
+      sendData(formData);
+    });
+
+    window.onload = getGPSAndEnableForm;
   </script>
 </body>
 </html>
