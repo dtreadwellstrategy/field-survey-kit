@@ -1,27 +1,33 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 app = FastAPI()
 
-# Serve static files (index.html, form.html, etc.)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Route for terms of use page (index.html)
 @app.get("/", response_class=HTMLResponse)
-async def root():
+async def nda():
     with open("static/index.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-# Route for form page (form.html)
 @app.get("/form", response_class=HTMLResponse)
 async def form():
     with open("static/form.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-# Endpoint for logging location data
+class SurveySubmission(BaseModel):
+    name: str
+    property: str
+    notes: str
+    lat: float
+    lng: float
+    timestamp: str
+    ua: str
+
 @app.post("/log")
-async def log_location(request: Request):
-    data = await request.json()
-    print("Received location:", data)  # Later you can write to a file or DB
+async def log_location(data: SurveySubmission):
+    with open("location_log.csv", "a") as f:
+        f.write(f"{data.timestamp},{data.name},{data.property},{data.lat},{data.lng},{data.notes},{data.ua}\n")
     return {"status": "ok"}
