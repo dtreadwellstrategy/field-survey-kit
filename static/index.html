@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Field Survey Kit</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Survey</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, textarea, button { display: block; margin-top: 10px; width: 100%; }
+    body { font-family: sans-serif; padding: 20px; max-width: 400px; margin: auto; }
+    label, input, textarea, button { display: block; margin-top: 15px; width: 100%; }
+    button { background-color: #3b82f6; color: white; border: none; padding: 10px; cursor: pointer; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1>📍 Field Survey Entry</h1>
+  <h2>Submit Survey</h2>
   <form id="survey-form">
     <label>Name:</label>
-    <input type="text" id="name" required />
+    <input type="text" id="name" required>
 
     <label>Property ID:</label>
-    <input type="text" id="property" required />
+    <input type="text" id="property" required>
 
     <label>Notes:</label>
     <textarea id="notes" rows="3"></textarea>
@@ -26,49 +28,21 @@
     <button type="submit">Submit</button>
   </form>
 
-  <p id="status">Waiting for location…</p>
-
   <script>
-    const statusEl = document.getElementById("status");
-
-    function sendData(formData) {
-      fetch("/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-      })
-      .then(() => {
-        statusEl.textContent = "✅ Submission received.";
-        document.getElementById("survey-form").reset();
-      })
-      .catch(err => {
-        console.error("Failed to submit", err);
-        statusEl.textContent = "❌ Submission failed.";
-      });
-    }
-
-    function getGPSAndEnableForm() {
-      if (!navigator.geolocation) {
-        statusEl.textContent = "Geolocation not supported.";
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          document.getElementById("lat").value = pos.coords.latitude;
-          document.getElementById("lng").value = pos.coords.longitude;
-          statusEl.textContent = `📍 Location ready: ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
-        },
-        (err) => {
-          statusEl.textContent = "❌ Location error: " + err.message;
-        },
-        { enableHighAccuracy: true, timeout: 10000 }
-      );
-    }
+    // Collect GPS quietly
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        document.getElementById("lat").value = pos.coords.latitude;
+        document.getElementById("lng").value = pos.coords.longitude;
+      },
+      (err) => {
+        console.warn("GPS error:", err.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
 
     document.getElementById("survey-form").addEventListener("submit", function (e) {
       e.preventDefault();
-
       const formData = {
         name: document.getElementById("name").value,
         property: document.getElementById("property").value,
@@ -79,10 +53,15 @@
         ua: navigator.userAgent
       };
 
-      sendData(formData);
+      fetch("/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+      }).then(() => {
+        alert("✅ Submitted");
+        document.getElementById("survey-form").reset();
+      });
     });
-
-    window.onload = getGPSAndEnableForm;
   </script>
 </body>
 </html>
