@@ -1,25 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Terms of Participation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Terms of Use & Participation</title>
   <style>
-    body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; }
-    h2 { margin-bottom: 0; }
-    button { margin-top: 30px; padding: 12px 20px; background-color: #3b82f6; color: white; border: none; cursor: pointer; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      margin: 40px;
+      background-color: #f4f4f4;
+      color: #000;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .terms-container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .scroll-box {
+      height: 400px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      padding: 20px;
+      margin-bottom: 20px;
+      background-color: #fafafa;
+    }
+    .agree-btn {
+      display: block;
+      margin: 0 auto;
+      padding: 12px 24px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .agree-btn:hover {
+      background-color: #0056b3;
+    }
   </style>
 </head>
 <body>
-  <h2>Terms of Participation</h2>
-  <p>
-    By proceeding, you agree to participate in a field survey study involving the collection of geospatial and field-reported data.
-    This information may include your device's GPS location and voluntary inputs related to land use, animal activity, or infrastructure.
-  </p>
-  <p>
-    Data will be handled securely and may be analyzed to improve AI-driven geospatial tools. Your personal identity will not be associated
-    with published outputs. Participation is voluntary and you may exit at any time.
-  </p>
+  <div class="terms-container">
+    <h1>Terms of Use & Data Collection Notice</h1>
+    <div class="scroll-box">
+      <p><strong>Introduction</strong><br>
+      By participating in this data collection survey, you acknowledge and agree to the terms outlined in this document. This survey is part of a research initiative to collect accurate field-level geospatial data related to environmental, agricultural, and infrastructural assessments. Participation is voluntary. By continuing, you consent to all terms below.</p>
 
-  <button onclick="window.location.href='/form'">I Agree</button>
+      <p><strong>1. Authorized Use Only</strong><br>
+      This web-based tool is intended solely for approved users who are contributing observational or location-based data for legitimate research purposes. Unauthorized use, reverse engineering, or replication of the platform is strictly prohibited.</p>
+
+      <p><strong>2. Data Collected</strong><br>
+      When using this platform, the following may be collected:
+      <ul>
+        <li>Device GPS coordinates (real-time)</li>
+        <li>Timestamps</li>
+        <li>Voluntarily entered data (e.g., property ID, activity notes)</li>
+        <li>Browser metadata (e.g., user agent, IP address)</li>
+      </ul>
+      </p>
+
+      <p><strong>3. Data Usage</strong><br>
+      Your submitted data may be used for:
+      <ul>
+        <li>Geospatial analysis and visualization</li>
+        <li>AI model training and development</li>
+        <li>Research publications and internal reporting</li>
+        <li>Aggregated datasets shared with trusted partners</li>
+      </ul>
+      No personally identifiable information will be published or sold. Data may be retained indefinitely for longitudinal study.</p>
+
+      <p><strong>4. Confidentiality & Non-Disclosure</strong><br>
+      Participation may involve access to confidential interfaces, models, or tool capabilities not publicly released. You agree to:
+      <ul>
+        <li>Not disclose, distribute, or replicate proprietary functionality, UI/UX, or concepts</li>
+        <li>Not share screenshots or technical details without prior written consent</li>
+        <li>Treat all project details as confidential unless otherwise authorized</li>
+      </ul>
+      This section constitutes a <strong>binding non-disclosure agreement</strong> (NDA) for all participants.</p>
+
+      <p><strong>5. Copyright & Intellectual Property</strong><br>
+      All content, source code, models, interfaces, and materials presented through this platform remain the intellectual property of the project developers. You may not:
+      <ul>
+        <li>Copy or distribute any part of the platform</li>
+        <li>Claim ownership of derivative works based on this platform</li>
+        <li>Use the design, code, or data for commercial purposes without a separate license</li>
+      </ul>
+      </p>
+
+      <p><strong>6. Third-Party Services</strong><br>
+      This tool may rely on services such as:
+      <ul>
+        <li>Browser-based geolocation APIs</li>
+        <li>Cloud storage or server infrastructure</li>
+        <li>Analytical tools or security monitoring software</li>
+      </ul>
+      By using this tool, you acknowledge that limited technical data (e.g., IP address, GPS accuracy) may pass through third-party services during standard operation.</p>
+
+      <p><strong>7. Eligibility for Early Access</strong><br>
+      Participants who contribute verified data across a minimum number of distinct property areas may be eligible for early access to beta features or visualization tools. The threshold for eligibility and access approval remains at the discretion of project administrators.</p>
+
+      <p><strong>8. Jurisdiction</strong><br>
+      These terms are governed by the laws of the Commonwealth of Virginia, United States. Any disputes shall be handled under the jurisdiction of Virginia-based courts or applicable arbitration systems.</p>
+
+      <p><strong>9. Consent & Exit</strong><br>
+      By clicking “I Agree” and continuing, you confirm that:
+      <ul>
+        <li>You have read, understood, and accepted these terms</li>
+        <li>You are voluntarily providing location data</li>
+        <li>You may exit at any time by closing your browser</li>
+      </ul>
+      </p>
+    </div>
+    <button class="agree-btn" onclick="window.location.href='/form'">I Agree</button>
+  </div>
 </body>
 </html>
