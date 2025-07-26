@@ -1,32 +1,156 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Field Survey Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+    integrity="sha384-sA+5Rk1X0NfuxNsyK+qW+fAzVRqVtsKo9Iez/8DRh7TzZg2k1+ZogTDqJfS7FYvU"
+    crossorigin=""
+  />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: "Times New Roman", Times, serif;
+      background-color: #f5f5f5;
+    }
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+    #map {
+      flex: 2;
+      height: 100%;
+    }
+    .form-section {
+      flex: 1;
+      padding: 30px;
+      background: white;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+    }
+    .form-section h2 {
+      margin-top: 0;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-family: inherit;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px;
+      width: 100%;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="map"></div>
+    <div class="form-section">
+      <h2>Submit Field Observation</h2>
+      <form id="surveyForm">
+        <label for="name">Your Name</label>
+        <input type="text" id="name" required />
 
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+        <label for="property">Property ID</label>
+        <input type="text" id="property" required />
 
-@app.get("/", response_class=HTMLResponse)
-async def nda():
-    with open("static/index.html") as f:
-        return HTMLResponse(content=f.read())
+        <label for="notes">Notes</label>
+        <textarea id="notes" rows="5"></textarea>
 
-@app.get("/form", response_class=HTMLResponse)
-async def form():
-    with open("static/form.html") as f:
-        return HTMLResponse(content=f.read())
+        <!-- Hidden fields -->
+        <input type="hidden" id="lat" />
+        <input type="hidden" id="lng" />
+        <input type="hidden" id="timestamp" />
+        <input type="hidden" id="ua" value="" />
 
-class SurveySubmission(BaseModel):
-    name: str
-    property: str
-    notes: str
-    lat: float
-    lng: float
-    timestamp: str
-    ua: str
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
 
-@app.post("/log")
-async def log_location(data: SurveySubmission):
-    with open("location_log.csv", "a") as f:
-        f.write(f"{data.timestamp},{data.name},{data.property},{data.lat},{data.lng},{data.notes},{data.ua}\n")
-    return {"status": "ok"}
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha384-Vm4B8MaEx4+qvU06qNvZekZHZRT8rhPmltAozW+ae7xhD1FrlfVmN6KjGtvFvOQ+"
+    crossorigin=""></script>
+  <script>
+    let map, marker;
+
+    function initMap(lat, lng) {
+      map = L.map('map').setView([lat, lng], 16);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      marker = L.marker([lat, lng]).addTo(map)
+        .bindPopup('Your location')
+        .openPopup();
+    }
+
+    function updateHiddenFields(lat, lng) {
+      document.getElementById("lat").value = lat;
+      document.getElementById("lng").value = lng;
+      document.getElementById("timestamp").value = new Date().toISOString();
+      document.getElementById("ua").value = navigator.userAgent;
+    }
+
+    navigator.geolocation.getCurrentPosition(position => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      initMap(lat, lng);
+      updateHiddenFields(lat, lng);
+    }, error => {
+      alert("Could not get location. Please enable GPS.");
+    });
+
+    document.getElementById("surveyForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById("name").value,
+        property: document.getElementById("property").value,
+        notes: document.getElementById("notes").value,
+        lat: parseFloat(document.getElementById("lat").value),
+        lng: parseFloat(document.getElementById("lng").value),
+        timestamp: document.getElementById("timestamp").value,
+        ua: document.getElementById("ua").value
+      };
+
+      const res = await fetch("/log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        alert("Thank you! Data submitted.");
+        document.getElementById("surveyForm").reset();
+      } else {
+        alert("Submission failed.");
+      }
+    });
+  </script>
+</body>
+</html>
