@@ -10,7 +10,7 @@
       background-color: #f4f4f4;
       color: #000;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
     }
     .terms-container {
@@ -26,21 +26,25 @@
       overflow-y: scroll;
       border: 1px solid #ccc;
       padding: 20px;
-      margin-bottom: 20px;
       background-color: #fafafa;
+      margin-bottom: 30px;
     }
     .agree-btn {
       display: block;
       margin: 0 auto;
       padding: 12px 24px;
       font-size: 16px;
-      background-color: #007BFF;
+      background-color: grey;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
+      cursor: not-allowed;
+    }
+    .agree-btn.enabled {
+      background-color: #007bff;
       cursor: pointer;
     }
-    .agree-btn:hover {
+    .agree-btn.enabled:hover {
       background-color: #0056b3;
     }
   </style>
@@ -48,11 +52,13 @@
 <body>
   <div class="terms-container">
     <h1>Terms of Use</h1>
-    <div class="scroll-box">
+    <div id="termsBox" class="scroll-box">
+      <!-- All your terms content stays the same here -->
+      <!-- [START OF TERMS TEXT] -->
       <p><strong>Introduction</strong><br>
       Thank you for participating in this crowdsourced mapping initiative. The purpose of this platform is to collect accurate field-level geospatial data related to environmental, agricultural, and infrastructural assessments. Your participation directly supports efforts in sustainable development, environmental monitoring, and field-based research through user-informed reporting.
       This platform is designed to empower communities and field researchers to better understand geographic conditions and resource usage across diverse regions. 
-      Participation in this initiative is voluntary. By continuing, you acknowledge that you are contributing to a shared resource intended for research, planning, and analytic applications. Please review the following terms annd conditions carefully before proceeding.</p>
+      Participation in this initiative is voluntary. By continuing, you acknowledge that you are contributing to a shared resource intended for research, planning, and analytic applications. Please review the following terms and conditions carefully before proceeding.</p>
 
       <p><strong>1. Authorized Use Only</strong><br>
       This web-based tool is intended solely for approved users who are contributing observational or location-based data for legitimate research purposes. Unauthorized use, reverse engineering, or replication of the platform is strictly prohibited.</p>
@@ -113,26 +119,33 @@
       <p><strong>9. Consent & Exit</strong><br>
       By clicking “I Agree” and continuing, you confirm that:
       <ul>
-        <li>By clicking “I Agree”, you confirm that you have read, understood, and accepted these terms.</li>
+        <li>You have read, understood, and accepted these terms.</li>
         <li>This agreement does not obligate you to complete any survey or submit any data.</li>
         <li>You may exit the platform at any time by simply closing your browser window.</li>
       </ul>
       </p>
-  <div style="text-align: center; margin-top: 40px;">
-  <button onclick="window.location.href='/form'" 
-          style="
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-          "
-          onmouseover="this.style.backgroundColor='#0056b3'"
-          onmouseout="this.style.backgroundColor='#007bff'">
-    I Agree
-  </button>
-</div>
+      <!-- [END OF TERMS TEXT] -->
+    </div>
+
+    <button id="agreeBtn" class="agree-btn" disabled>I Agree</button>
+  </div>
+
+  <script>
+    const termsBox = document.getElementById('termsBox');
+    const agreeBtn = document.getElementById('agreeBtn');
+
+    termsBox.addEventListener('scroll', function () {
+      if (termsBox.scrollTop + termsBox.clientHeight >= termsBox.scrollHeight) {
+        agreeBtn.disabled = false;
+        agreeBtn.classList.add('enabled');
+      }
+    });
+
+    agreeBtn.addEventListener('click', function () {
+      if (!agreeBtn.disabled) {
+        window.location.href = '/form';
+      }
+    });
+  </script>
 </body>
 </html>
