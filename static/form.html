@@ -6,107 +6,172 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <style>
-    body, html { margin: 0; height: 100%; display: flex; }
-    #map { flex: 2; height: 100%; }
-    #form { flex: 1; padding: 20px; background: #f7f7f7; overflow-y: auto; }
-    input, textarea, button { width: 100%; margin-bottom: 10px; padding: 10px; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 70%;
+      height: 100%;
+    }
+
+    #form {
+      width: 30%;
+      max-width: 400px;
+      box-sizing: border-box;
+      padding: 20px;
+      background-color: #f7f7f7;
+      overflow-y: auto;
+    }
+
+    input, textarea, button {
+      display: block;
+      margin-bottom: 15px;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-<div id="map"></div>
-<div id="form">
-  <h2>Submit Report</h2>
-  <form id="surveyForm">
-    <input type="text" name="name" placeholder="Name" required />
-    <input type="text" name="property" placeholder="Property" required />
-    <textarea name="notes" placeholder="Notes" rows="4"></textarea>
+  <div id="map"></div>
 
-    <input type="hidden" name="lat" />
-    <input type="hidden" name="lng" />
-    <input type="hidden" name="timestamp" />
-    <input type="hidden" name="ua" />
-    <input type="hidden" name="geojson" />
+  <div id="form">
+    <h2>Submit Report</h2>
+    <form id="surveyForm">
+      <label>Name</label>
+      <input type="text" name="name" required />
 
-    <button type="submit">Submit</button>
-  </form>
-</div>
+      <label>Property</label>
+      <input type="text" name="property" required />
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script>
-  const map = L.map('map').setView([0, 0], 2);
-  const drawnItems = new L.FeatureGroup();
-  map.addLayer(drawnItems);
+      <label>Notes</label>
+      <textarea name="notes" rows="4"></textarea>
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      <input type="hidden" name="lat" />
+      <input type="hidden" name="lng" />
+      <input type="hidden" name="timestamp" />
+      <input type="hidden" name="ua" />
+      <input type="hidden" name="geojson" />
 
-  const drawControl = new L.Control.Draw({
-    draw: { polygon: true, rectangle: true, marker: true },
-    edit: { featureGroup: drawnItems }
-  });
-  map.addControl(drawControl);
+      <button type="submit">Submit</button>
+    </form>
+  </div>
 
-  map.on(L.Draw.Event.CREATED, function (e) {
-    const layer = e.layer;
-    const label = prompt("Label this feature:");
-    if (label) {
-      layer.bindPopup(label);
-      layer.feature = { type: "Feature", properties: { label } };
-    }
-    drawnItems.addLayer(layer);
-  });
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+  <script>
+    const map = L.map('map').setView([0, 0], 2);
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
 
-  window.addEventListener("DOMContentLoaded", () => {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      const timestamp = new Date().toISOString();
-      const ua = navigator.userAgent;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+    }).addTo(map);
 
-      map.setView([lat, lng], 17);
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: true,
+        rectangle: true,
+        marker: true,
+        circle: false,
+        circlemarker: false,
+        polyline: false
+      },
+      edit: {
+        featureGroup: drawnItems
+      }
+    });
+    map.addControl(drawControl);
 
-      document.querySelector('input[name="lat"]').value = lat;
-      document.querySelector('input[name="lng"]').value = lng;
-      document.querySelector('input[name="timestamp"]').value = timestamp;
-      document.querySelector('input[name="ua"]').value = ua;
+    map.on(L.Draw.Event.CREATED, function (e) {
+      const layer = e.layer;
+      const label = prompt("Label this feature (e.g., pond, fence, spout):");
+      if (label) {
+        layer.bindPopup(label);
+        layer.feature = {
+          type: "Feature",
+          properties: { label: label }
+        };
+      }
+      drawnItems.addLayer(layer);
+    });
 
-      // Auto-log location
-      fetch("/log", {
+    // Get location AFTER form loads
+    window.addEventListener("load", () => {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        const timestamp = new Date().toISOString();
+        const ua = navigator.userAgent;
+
+        map.setView([lat, lng], 17);
+
+        document.querySelector('input[name="lat"]').value = lat;
+        document.querySelector('input[name="lng"]').value = lng;
+        document.querySelector('input[name="timestamp"]').value = timestamp;
+        document.querySelector('input[name="ua"]').value = ua;
+
+        // Send auto-capture log
+        fetch("/log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "anonymous",
+            property: "auto-capture",
+            notes: "",
+            lat: lat,
+            lng: lng,
+            timestamp: timestamp,
+            ua: ua,
+            geojson: "{}"
+          })
+        }).then(res => {
+          if (!res.ok) {
+            console.error("Auto-location logging failed.");
+          } else {
+            console.log("Auto-location sent.");
+          }
+        });
+      }, err => {
+        console.error("Geolocation failed:", err);
+      });
+    });
+
+    // Form submission
+    document.getElementById("surveyForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const geojson = drawnItems.toGeoJSON();
+      document.querySelector('input[name="geojson"]').value = JSON.stringify(geojson);
+
+      const formData = new FormData(this);
+      const payload = {};
+      formData.forEach((v, k) => payload[k] = v);
+
+      const res = await fetch("/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: "anonymous",
-          property: "auto-capture",
-          notes: "",
-          lat, lng, timestamp, ua,
-          geojson: "{}"
-        })
-      }).then(res => console.log("Auto-location logged."));
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        alert("Survey submitted. Thank you!");
+        window.location.reload();
+      } else {
+        alert("Submission failed.");
+      }
     });
-  });
-
-  document.getElementById("surveyForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const geojson = drawnItems.toGeoJSON();
-    document.querySelector('input[name="geojson"]').value = JSON.stringify(geojson);
-
-    const formData = new FormData(this);
-    const payload = {};
-    formData.forEach((v, k) => payload[k] = v);
-
-    const res = await fetch("/log", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-
-    if (res.ok) {
-      alert("Submitted!");
-      window.location.reload();
-    } else {
-      alert("Error submitting form.");
-    }
-  });
-</script>
+  </script>
 </body>
 </html>
