@@ -29,14 +29,16 @@ class SurveySubmission(BaseModel):
 
 @app.post("/log")
 async def log_location(data: SurveySubmission):
-    print("🔵 Received POST /log")
-    print(f"Name: {data.name}")
-    print(f"Property: {data.property}")
-    print(f"Lat/Lng: {data.lat}, {data.lng}")
-    print(f"GeoJSON: {data.geojson}")
-
+    print("=== NEW SURVEY SUBMISSION ===")
+    print("Timestamp:", data.timestamp)
+    print("Name:", data.name)
+    print("Property:", data.property)
+    print("Lat/Lng:", data.lat, data.lng)
+    print("Notes:", data.notes)
+    print("User Agent:", data.ua)
+    print("GeoJSON:", data.geojson)
+    
     with open("location_log.csv", "a") as f:
         f.write(f"{data.timestamp},{data.name},{data.property},{data.lat},{data.lng},{data.notes},{data.ua},{data.geojson}\n")
 
     return {"status": "ok"}
-
