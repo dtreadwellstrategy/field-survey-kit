@@ -6,46 +6,43 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      display: flex;
-      overflow: hidden;
       font-family: Arial, sans-serif;
     }
-
+    #container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
     #map {
-      width: 70%;
+      flex: 2;
       height: 100%;
     }
-
     #form {
-      width: 30%;
-      max-width: 400px;
-      box-sizing: border-box;
+      flex: 1;
       padding: 20px;
       background-color: #f7f7f7;
       overflow-y: auto;
     }
-
     input, textarea, button {
       display: block;
-      margin-bottom: 15px;
       width: 100%;
       padding: 10px;
+      margin-bottom: 15px;
       font-size: 14px;
     }
-
     label {
       font-weight: bold;
-      margin-top: 10px;
     }
   </style>
 </head>
 <body>
+<div id="container">
   <div id="map"></div>
-
   <div id="form">
     <h2>Submit Report</h2>
     <form id="surveyForm">
@@ -67,111 +64,91 @@
       <button type="submit">Submit</button>
     </form>
   </div>
+</div>
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-  <script>
-    const map = L.map('map').setView([0, 0], 2);
-    const drawnItems = new L.FeatureGroup();
-    map.addLayer(drawnItems);
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script>
+  const map = L.map('map').setView([0, 0], 2);
+  const drawnItems = new L.FeatureGroup();
+  map.addLayer(drawnItems);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19
+  }).addTo(map);
 
-    const drawControl = new L.Control.Draw({
-      draw: {
-        polygon: true,
-        rectangle: true,
-        marker: true,
-        circle: false,
-        circlemarker: false,
-        polyline: false
-      },
-      edit: {
-        featureGroup: drawnItems
-      }
+  const drawControl = new L.Control.Draw({
+    draw: {
+      polygon: true,
+      rectangle: true,
+      marker: true,
+      circle: false,
+      circlemarker: false,
+      polyline: false
+    },
+    edit: {
+      featureGroup: drawnItems
+    }
+  });
+  map.addControl(drawControl);
+
+  map.on(L.Draw.Event.CREATED, function (e) {
+    const layer = e.layer;
+    const label = prompt("Label this feature (e.g., pond, fence, spout):");
+    if (label) {
+      layer.bindPopup(label);
+      layer.feature = {
+        type: "Feature",
+        properties: { label: label }
+      };
+    }
+    drawnItems.addLayer(layer);
+  });
+
+  // Trigger geolocation on form page load
+  window.addEventListener("load", function () {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      const timestamp = new Date().toISOString();
+      const ua = navigator.userAgent;
+
+      map.setView([lat, lng], 17);
+
+      document.querySelector('input[name="lat"]').value = lat;
+      document.querySelector('input[name="lng"]').value = lng;
+      document.querySelector('input[name="timestamp"]').value = timestamp;
+      document.querySelector('input[name="ua"]').value = ua;
+
+    }, err => {
+      console.error("Geolocation error:", err);
     });
-    map.addControl(drawControl);
+  });
 
-    map.on(L.Draw.Event.CREATED, function (e) {
-      const layer = e.layer;
-      const label = prompt("Label this feature (e.g., pond, fence, spout):");
-      if (label) {
-        layer.bindPopup(label);
-        layer.feature = {
-          type: "Feature",
-          properties: { label: label }
-        };
-      }
-      drawnItems.addLayer(layer);
-    });
+  // Submit logic
+  document.getElementById("surveyForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-    // Get location AFTER form loads
-    window.addEventListener("load", () => {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        const timestamp = new Date().toISOString();
-        const ua = navigator.userAgent;
+    const geojson = drawnItems.toGeoJSON();
+    document.querySelector('input[name="geojson"]').value = JSON.stringify(geojson);
 
-        map.setView([lat, lng], 17);
+    const formData = new FormData(this);
+    const payload = {};
+    formData.forEach((v, k) => payload[k] = v);
 
-        document.querySelector('input[name="lat"]').value = lat;
-        document.querySelector('input[name="lng"]').value = lng;
-        document.querySelector('input[name="timestamp"]').value = timestamp;
-        document.querySelector('input[name="ua"]').value = ua;
-
-        // Send auto-capture log
-        fetch("/log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: "anonymous",
-            property: "auto-capture",
-            notes: "",
-            lat: lat,
-            lng: lng,
-            timestamp: timestamp,
-            ua: ua,
-            geojson: "{}"
-          })
-        }).then(res => {
-          if (!res.ok) {
-            console.error("Auto-location logging failed.");
-          } else {
-            console.log("Auto-location sent.");
-          }
-        });
-      }, err => {
-        console.error("Geolocation failed:", err);
-      });
+    const res = await fetch("/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
 
-    // Form submission
-    document.getElementById("surveyForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
-
-      const geojson = drawnItems.toGeoJSON();
-      document.querySelector('input[name="geojson"]').value = JSON.stringify(geojson);
-
-      const formData = new FormData(this);
-      const payload = {};
-      formData.forEach((v, k) => payload[k] = v);
-
-      const res = await fetch("/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        alert("Survey submitted. Thank you!");
-        window.location.reload();
-      } else {
-        alert("Submission failed.");
-      }
-    });
-  </script>
+    if (res.ok) {
+      alert("Survey submitted. Thank you!");
+      window.location.reload();
+    } else {
+      alert("Submission failed.");
+    }
+  });
+</script>
 </body>
 </html>
