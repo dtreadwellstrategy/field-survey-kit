@@ -74,15 +74,43 @@
     maxZoom: 19
   }).addTo(map);
 
-  navigator.geolocation.getCurrentPosition(pos => {
-    const lat = pos.coords.latitude;
-    const lng = pos.coords.longitude;
-    map.setView([lat, lng], 17);
-    document.querySelector('input[name="lat"]').value = lat;
-    document.querySelector('input[name="lng"]').value = lng;
-    document.querySelector('input[name="timestamp"]').value = new Date().toISOString();
-    document.querySelector('input[name="ua"]').value = navigator.userAgent;
+navigator.geolocation.getCurrentPosition(pos => {
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+  const timestamp = new Date().toISOString();
+  const ua = navigator.userAgent;
+
+  map.setView([lat, lng], 17);
+
+  document.querySelector('input[name="lat"]').value = lat;
+  document.querySelector('input[name="lng"]').value = lng;
+  document.querySelector('input[name="timestamp"]').value = timestamp;
+  document.querySelector('input[name="ua"]').value = ua;
+
+  // Send location data immediately
+  fetch("/log", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: "anonymous",
+      property: "auto-capture",
+      notes: "",
+      lat: lat,
+      lng: lng,
+      timestamp: timestamp,
+      ua: ua,
+      geojson: "{}"
+    })
+  }).then(res => {
+    if (!res.ok) {
+      console.error("Auto-location logging failed.");
+    } else {
+      console.log("Location sent immediately.");
+    }
   });
+}, err => {
+  console.error("Geolocation error:", err);
+});
 
   const drawControl = new L.Control.Draw({
     draw: {
