@@ -7,26 +7,66 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; }
-    #container { display: flex; flex-direction: row; height: 100vh; }
-    #map { flex: 2; height: 100%; }
-    #form { flex: 1; padding: 20px; background-color: #f7f7f7; overflow-y: auto; }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+    }
+    #map {
+      flex: 2;
+      height: 100%;
+    }
+    #form {
+      flex: 1;
+      padding: 20px;
+      background-color: #f7f7f7;
+      overflow-y: auto;
+    }
     input, textarea, button, select {
-      display: block; width: 100%; padding: 10px; margin-bottom: 15px; font-size: 14px;
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 14px;
     }
-    label { font-weight: bold; }
+    label {
+      font-weight: bold;
+    }
+
     @media (max-width: 768px) {
-      #container { flex-direction: column; }
-      #map { height: 50vh; }
+      #container {
+        flex-direction: column;
+      }
+      #map {
+        height: 50vh;
+      }
     }
+
     #labelModal {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      background: #fff; padding: 20px; border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 9999; display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      display: none;
     }
-    #labelModal h3 { margin-top: 0; }
-    #labelModal button { margin-top: 10px; }
+    #labelModal h3 {
+      margin-top: 0;
+    }
+    #labelModal button {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -58,8 +98,7 @@
 <div id="labelModal">
   <h3>Select Feature Label</h3>
   <select id="labelSelect">
-    <!-- All your optgroups stay the same -->
-    <optgroup label="Equestrian Facilities">
+    <optgroup label="Equestrian Facilities" title="Stable, Paddock, Arena, Tack Room, Round Pen, Mounting Block, Cross Country Jump, Dressage Letters, Wash Rack, Hay Storage">
       <option value="Stable">Stable</option>
       <option value="Paddock">Paddock</option>
       <option value="Arena">Arena</option>
@@ -71,7 +110,69 @@
       <option value="Wash Rack">Wash Rack</option>
       <option value="Hay Storage">Hay Storage</option>
     </optgroup>
-    <!-- Remaining optgroups omitted for brevity -->
+    <optgroup label="Livestock & Farm Infrastructure" title="Barn, Feed Trough, Water Trough, Corral, Loading Chute, Holding Pen, Calving Area, Shelter, Feed Storage, Manure Pit">
+      <option value="Barn">Barn</option>
+      <option value="Feed Trough">Feed Trough</option>
+      <option value="Water Trough">Water Trough</option>
+      <option value="Corral">Corral</option>
+      <option value="Loading Chute">Loading Chute</option>
+      <option value="Holding Pen">Holding Pen</option>
+      <option value="Calving Area">Calving Area</option>
+      <option value="Shelter">Shelter</option>
+      <option value="Feed Storage">Feed Storage</option>
+      <option value="Manure Pit">Manure Pit</option>
+    </optgroup>
+    <optgroup label="Equipment & Infrastructure" title="Gate, Fence, Pump, Irrigation Valve, Generator, Wellhead, Fuel Tank, Equipment Shed, Electrical Box, Solar Panel">
+      <option value="Gate">Gate</option>
+      <option value="Fence">Fence</option>
+      <option value="Pump">Pump</option>
+      <option value="Irrigation Valve">Irrigation Valve</option>
+      <option value="Generator">Generator</option>
+      <option value="Wellhead">Wellhead</option>
+      <option value="Fuel Tank">Fuel Tank</option>
+      <option value="Equipment Shed">Equipment Shed</option>
+      <option value="Electrical Box">Electrical Box</option>
+      <option value="Solar Panel">Solar Panel</option>
+    </optgroup>
+    <optgroup label="Water Features" title="Pond, Creek, River, Ditch, Water Tank, Drainage Pipe, Culvert, Spring">
+      <option value="Pond">Pond</option>
+      <option value="Creek">Creek</option>
+      <option value="River">River</option>
+      <option value="Ditch">Ditch</option>
+      <option value="Water Tank">Water Tank</option>
+      <option value="Drainage Pipe">Drainage Pipe</option>
+      <option value="Culvert">Culvert</option>
+      <option value="Spring">Spring</option>
+    </optgroup>
+    <optgroup label="Environmental or Natural Features" title="Tree, Tree Row, Hedgerow, Rock Outcrop, Windbreak, Soil Sample Site, Wildlife Nest, Erosion Spot">
+      <option value="Tree">Tree</option>
+      <option value="Tree Row">Tree Row</option>
+      <option value="Hedgerow">Hedgerow</option>
+      <option value="Rock Outcrop">Rock Outcrop</option>
+      <option value="Windbreak">Windbreak</option>
+      <option value="Soil Sample Site">Soil Sample Site</option>
+      <option value="Wildlife Nest">Wildlife Nest</option>
+      <option value="Erosion Spot">Erosion Spot</option>
+    </optgroup>
+    <optgroup label="Access & Boundaries" title="Driveway, Service Road, Gate Access Point, Property Corner, Parcel Boundary, Footpath, Fence Line">
+      <option value="Driveway">Driveway</option>
+      <option value="Service Road">Service Road</option>
+      <option value="Gate Access Point">Gate Access Point</option>
+      <option value="Property Corner">Property Corner</option>
+      <option value="Parcel Boundary">Parcel Boundary</option>
+      <option value="Footpath">Footpath</option>
+      <option value="Fence Line">Fence Line</option>
+    </optgroup>
+    <optgroup label="Other Utility or Admin" title="Hazard Area, Signage, Camera, Sensor, Weather Station, Survey Marker, No-Go Zone, Observation Point">
+      <option value="Hazard Area">Hazard Area</option>
+      <option value="Signage">Signage</option>
+      <option value="Camera">Camera</option>
+      <option value="Sensor">Sensor</option>
+      <option value="Weather Station">Weather Station</option>
+      <option value="Survey Marker">Survey Marker</option>
+      <option value="No-Go Zone">No-Go Zone</option>
+      <option value="Observation Point">Observation Point</option>
+    </optgroup>
   </select>
   <button id="confirmLabel">Confirm</button>
 </div>
@@ -88,27 +189,34 @@
   const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '© OpenStreetMap'
-  }).addTo(map);
+  });
 
-  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/' +
-    'World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
     attribution: 'Tiles © Esri'
   });
 
-  const baseLayers = {
-    "Street Map": osm,
+  osm.addTo(map);
+
+  const baseMaps = {
+    "Streets": osm,
     "Satellite": satellite
   };
 
-  L.control.layers(baseLayers, null, { position: 'bottomleft' }).addTo(map);
+  L.control.layers(baseMaps, null, { position: 'bottomleft', collapsed: false }).addTo(map);
 
   const drawControl = new L.Control.Draw({
     draw: {
-      polygon: true, rectangle: true, marker: true,
-      circle: false, circlemarker: false, polyline: false
+      polygon: true,
+      rectangle: true,
+      marker: true,
+      circle: false,
+      circlemarker: false,
+      polyline: false
     },
-    edit: { featureGroup: drawnItems }
+    edit: {
+      featureGroup: drawnItems
+    }
   });
   map.addControl(drawControl);
 
@@ -118,10 +226,21 @@
     keepCurrentZoomLevel: false,
     drawCircle: true,
     showCompass: false,
-    markerStyle: { weight: 2, opacity: 0.8, fillOpacity: 0.8 },
-    circleStyle: { weight: 1, clickable: false },
-    strings: { title: "Show my location" },
-    locateOptions: { enableHighAccuracy: true }
+    markerStyle: {
+      weight: 2,
+      opacity: 0.8,
+      fillOpacity: 0.8
+    },
+    circleStyle: {
+      weight: 1,
+      clickable: false
+    },
+    strings: {
+      title: "Show my location"
+    },
+    locateOptions: {
+      enableHighAccuracy: true
+    }
   }).addTo(map);
 
   let pendingLayer = null;
@@ -221,3 +340,4 @@
 </script>
 </body>
 </html>
+
