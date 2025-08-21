@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from datetime import datetime
+import datetime
 
 app = FastAPI()
 
@@ -21,7 +21,7 @@ async def form():
     with open("static/form.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-# Schema for full survey form
+# Schema for survey submission
 class SurveySubmission(BaseModel):
     name: str
     property: str
@@ -32,7 +32,7 @@ class SurveySubmission(BaseModel):
     ua: str
     geojson: str
 
-# Survey form submission handler
+# Submission endpoint
 @app.post("/log")
 async def log_location(data: SurveySubmission):
     print("=== NEW SURVEY SUBMISSION ===")
@@ -49,20 +49,17 @@ async def log_location(data: SurveySubmission):
 
     return {"status": "ok"}
 
-
-# -------------------------------
-# ✅ NEW: Immediate location logger
-# -------------------------------
-class LocationData(BaseModel):
-    lat: float
-    lng: float
-
+# ✅ Lightweight location-only logger (auto-ping)
 @app.post("/log-location")
-async def log_location_only(data: LocationData):
-    timestamp = datetime.utcnow().isoformat()
-    print(f"Immediate location received: {data.lat}, {data.lng} at {timestamp}")
+async def log_location_raw(req: Request):
+    body = await req.json()
+    lat = body.get("lat")
+    lng = body.get("lng")
 
-    with open("locations.txt", "a") as f:
-        f.write(f"{data.lat},{data.lng} @ {timestamp}\n")
+    if not lat or not lng:
+        return {"error": "Missing coordinates"}
 
-    return {"status": "logged"}
+    with open("location_log.csv", "a") as f:
+        f.write(f"{datetime.datetime.now().isoformat()},AUTO,AUTO,{lat},{lng},,,{}\n")
+
+    return {"status": "location received"}
