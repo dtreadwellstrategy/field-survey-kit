@@ -1,7 +1,8 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from datetime import datetime
 
 app = FastAPI()
 
@@ -20,7 +21,7 @@ async def form():
     with open("static/form.html", "r") as f:
         return HTMLResponse(content=f.read())
 
-# Schema for survey submission
+# Schema for full survey form
 class SurveySubmission(BaseModel):
     name: str
     property: str
@@ -31,7 +32,7 @@ class SurveySubmission(BaseModel):
     ua: str
     geojson: str
 
-# Submission endpoint
+# Survey form submission handler
 @app.post("/log")
 async def log_location(data: SurveySubmission):
     print("=== NEW SURVEY SUBMISSION ===")
@@ -47,3 +48,21 @@ async def log_location(data: SurveySubmission):
         f.write(f"{data.timestamp},{data.name},{data.property},{data.lat},{data.lng},{data.notes},{data.ua},{data.geojson}\n")
 
     return {"status": "ok"}
+
+
+# -------------------------------
+# ✅ NEW: Immediate location logger
+# -------------------------------
+class LocationData(BaseModel):
+    lat: float
+    lng: float
+
+@app.post("/log-location")
+async def log_location_only(data: LocationData):
+    timestamp = datetime.utcnow().isoformat()
+    print(f"Immediate location received: {data.lat}, {data.lng} at {timestamp}")
+
+    with open("locations.txt", "a") as f:
+        f.write(f"{data.lat},{data.lng} @ {timestamp}\n")
+
+    return {"status": "logged"}
