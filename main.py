@@ -45,7 +45,7 @@ async def log_location(data: SurveySubmission):
     print("GeoJSON:", data.geojson)
 
     with open("location_log.csv", "a") as f:
-        f.write(f"{data.timestamp},{data.name},{data.property},{data.lat},{data.lng},{data.notes},{data.ua},{data.geojson}\n")
+        f.write(f"{datetime.datetime.now().isoformat()},AUTO,AUTO,{lat},{lng},,,\n")
 
     return {"status": "ok"}
 
@@ -63,3 +63,4 @@ async def log_location_raw(req: Request):
         f.write(f"{datetime.datetime.now().isoformat()},AUTO,AUTO,{lat},{lng},,,{}\n")
 
     return {"status": "location received"}
+
