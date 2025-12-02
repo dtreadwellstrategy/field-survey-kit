@@ -1,49 +1,37 @@
 // /api/log-location.js
+// CoreConnect™ — Safe Passage™
+// Logs lat/lng to the FastAPI backend instead of GitHub
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).send("Method not allowed");
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-  const { lat, lng } = req.body;
-  if (!lat || !lng) return res.status(400).send("Missing lat/lng");
+  try {
+    const { lat, lng } = req.body;
 
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO = "dtreadwellstrategy/field-survey-kit";
-  const FILE_PATH = "locations.txt";
-  const API_URL = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`;
-  const message = `Location: ${lat}, ${lng} @ ${new Date().toISOString()}\n`;
+    if (!lat || !lng) {
+      return res.status(400).json({ error: "Missing lat/lng values" });
+    }
 
-  const headers = {
-    Authorization: `Bearer ${GITHUB_TOKEN}`,
-    Accept: "application/vnd.github+json"
-  };
+    // 🔥 Send the location to your FastAPI backend
+    const backendURL = process.env.BACKEND_URL || "http://localhost:8000/log-location";
 
-  // Step 1: Get existing content + sha
-  const current = await fetch(API_URL, { headers });
-  const currentData = await current.json();
+    const response = await fetch(backendURL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat, lng })
+    });
 
-  const existingContent = currentData.content
-    ? Buffer.from(currentData.content, "base64").toString("utf-8")
-    : "";
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error("FastAPI logging error:", errBody);
+      return res.status(500).json({ error: "Backend logging failed" });
+    }
 
-  const updatedContent = Buffer.from(existingContent + message).toString("base64");
-
-  // Step 2: Push update
-  const push = await fetch(API_URL, {
-    method: "PUT",
-    headers: {
-      ...headers,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      message: "Log location",
-      content: updatedContent,
-      sha: currentData.sha
-    })
-  });
-
-  if (push.ok) {
-    res.status(200).json({ success: true });
-  } else {
-    const error = await push.json();
-    res.status(500).json({ error: "GitHub update failed", details: error });
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Error in log-location.js:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 }
